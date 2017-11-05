@@ -8,11 +8,14 @@ import store from './vuex/store'
 import axios from 'axios'
 import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.css'
+import 'sweetalert2/dist/sweetalert2.min.css'
+import 'sweetalert2/dist/sweetalert2.min.js'
 
 Vue.config.productionTip = false
 
 Vue.prototype.$http = axios.create({
-  baseURL: 'https://todo-api.lokilokostudio.tk/api'
+  baseURL: 'http://localhost:3000/api',
+  headers: {token:localStorage.getItem('token')}
 })
 
 Vue.prototype.$swal = swal
@@ -20,10 +23,26 @@ Vue.prototype.$swal = swal
 Vue.use(VueMaterial)
 
 Vue.material.registerTheme('default', {
-  primary: 'lightgreen',
+  primary: 'green',
   accent: 'lime',
   warn: 'red',
   background: 'white'
+})
+
+Vue.material.registerTheme({
+  blue: {
+    primary: 'blue',
+    accent: 'pink',
+    warn: 'red'
+  }
+})
+
+Vue.material.registerTheme({
+  brown: {
+    primary: 'brown',
+    accent: 'black',
+    warn: 'red'
+  }
 })
 
 /* eslint-disable no-new */

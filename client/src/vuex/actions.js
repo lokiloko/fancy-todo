@@ -5,10 +5,17 @@ const http = axios.create({
 })
 
 const actions = {
-  getAllQuestions ({ commit }) {
-    http.get('/questions')
+  getUsersData ({ commit }) {
+    http.get('/users/' + localStorage.getItem('token'))
     .then(({ data }) => {
-      commit('setQuestions', data.data)
+      commit('setUser', data.data)
+    })
+    .catch((err) => console.log(err))
+  },
+  getUsersTodo ({ commit }) {
+    http.get('/todos/' + localStorage.getItem('token'))
+    .then(({ data }) => {
+      commit('setTodos', data.data)
     })
     .catch((err) => console.log(err))
   }

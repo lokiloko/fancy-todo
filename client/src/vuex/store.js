@@ -6,7 +6,8 @@ import actions from './actions'
 Vue.use(Vuex)
 
 const initialState = {
-  questions: [],
+  todos: [],
+  user: {},
   loggedIn: false
 }
 
