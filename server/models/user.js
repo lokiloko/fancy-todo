@@ -48,6 +48,9 @@ class Model {
     })
   }
   static readOne(id) {
+    jwt.verify(id, process.env.JWT_KEY, function(err, decoded) {
+      id = decoded._id
+    });
     return new Promise((resolve, reject) => {
       User.findOne({
         "_id": id
@@ -206,6 +209,8 @@ class Model {
     })
   }
   static register(insert) {
+    const secret = process.env.SALT_KEY;
+    insert.password = crypto.createHmac('sha256', secret).update(insert.password).digest('hex');
     return new Promise((resolve, reject) => {
       User.create({
         name: insert.name,

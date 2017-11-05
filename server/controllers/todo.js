@@ -41,6 +41,14 @@ class TodoCtrl {
       res.status(500).send(err)
     })
   }
+  static finished(req, res, next){
+    model.Todo.finished(req.params.id, req.headers.token).then((data)=>{
+      res.status(200).send(data)
+    }).catch((err)=>{
+      console.log(err)
+      res.status(500).send(err)
+    })
+  }
   static delete(req, res, next){
     model.Todo.delete(req.params.id, req.headers.token).then((data)=>{
       res.status(200).send(data)

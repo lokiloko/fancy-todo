@@ -75,14 +75,13 @@ class Model {
     jwt.verify(insert.posted_by, process.env.JWT_KEY, function(err, decoded) {
       insert.posted_by = decoded._id
     });
-    console.log(insert.posted_by)
     return new Promise((resolve, reject) => {
       Todo.create({
         todo: insert.todo,
         posted_by: insert.posted_by,
         created_at: Date.now(),
         due_date: insert.due_date,
-        starred: insert.starred,
+        star: insert.starred,
         category: insert.category
       }).then((data) => {
         var obj = {
@@ -103,15 +102,15 @@ class Model {
       Todo.findOne({
         "_id": update._id
       }).then((data) => {
-        console.log(data.posted_by+'aaaa')
-        console.log(update.posted_by+'bbbb')
         if (data.posted_by.toString() == update.posted_by) {
           Todo.findOneAndUpdate({
             "_id": update._id
           }, {
             todo: update.todo,
-            category: update.category
-          }).then((updated) => {
+            category: update.category,
+            due_date: update.due_date,
+            star: update.starred
+          }, {new:true}).then((updated) => {
             var obj = {
               message: 'Update Success',
               data: data
@@ -144,9 +143,44 @@ class Model {
           }
           Todo.findOneAndUpdate({
             "_id": id
-          }, {star:star}).then((data) => {
+          }, {star:star}, {new:true}).then((data) => {
             var obj = {
               message: 'Starred',
+              data: data
+            }
+            resolve(obj)
+          }).catch((err) => {
+            reject(err)
+          })
+        }
+        else {
+          reject({
+            message: 'You are not allowed to star this'
+          })
+        }
+      }).catch((err)=>{
+        reject(err);
+      })
+    })
+  }
+  static finished(id, token) {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_KEY, function(err, decoded) {
+        token = decoded._id
+      });
+      Todo.findOne({
+        "_id":id
+      }).then((todo)=>{
+        if(todo.posted_by == token){
+          var finished = ''
+          if(todo.finished_at != ''){
+            finished = Date.now()
+          }
+          Todo.findOneAndUpdate({
+            "_id": id
+          }, {finished_at:finished}, {new:true}).then((data) => {
+            var obj = {
+              message: 'Finished',
               data: data
             }
             resolve(obj)
