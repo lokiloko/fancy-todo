@@ -29,7 +29,19 @@ const mutations = {
         return element
       }
     })
-    state.todos[index] = payload
+    // state.todos[index] = payload
+    state.todos.splice(index, 1)
+    state.todos.splice(index, 0, payload)
+  },
+  updateTodoSave (state, payload) {
+    var index = state.todos.findIndex((element) => {
+      if (element._id === payload._id) {
+        return element
+      }
+    })
+    // state.todos[index] = payload
+    state.todos.splice(index, 1)
+    state.todos.splice(index, 0, payload)
   }
 }
 

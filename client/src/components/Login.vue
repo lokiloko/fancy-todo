@@ -95,9 +95,15 @@ export default {
                 title: 'Hooray',
                 text: 'You\' re now logged in',
                 type: 'success',
-                confirmButtonText: 'Sad:('
+                confirmButtonText: 'Ntap'
               })
             }).catch((err) => {
+              self.$swal({
+                title: 'Ooops',
+                text: 'Your username and password not match',
+                type: 'error',
+                confirmButtonText: 'What!?'
+              })
               console.error(err)
             })
           } else {

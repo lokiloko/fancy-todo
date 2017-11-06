@@ -10,6 +10,57 @@
         <md-card-header>
           <div class="md-title">To Do List</div>
           <div class="md-subhead">{{user.name}}</div>
+          <div class="md-subhead">
+            <md-layout md-gutter>
+              <md-layout>
+              </md-layout>
+              <md-layout md-flex="66">
+                <md-layout md-flex="20">
+                  <md-switch id="my-test2" name="my-test2" class="md-primary" style="margin-top:30px; margin-bottom: 20px;" v-model="showAll">Show All</md-switch>
+                </md-layout>
+                <md-layout md-flex="20">
+                  <md-switch id="my-test2" name="my-test2" class="md-primary" style="margin-top:30px; margin-bottom: 20px;" v-model="filterFinish">Finished</md-switch>
+                </md-layout>
+                <md-layout md-flex="20">
+                  <md-switch id="my-test2" name="my-test2" class="md-accent" style="margin-top:30px; margin-bottom: 20px;" v-model="filterStar">Starred</md-switch>
+                </md-layout>
+                <md-layout md-flex="20">
+                  <md-menu md-size="4" md-direction="top right" ref="menu">
+                    <md-button style="float: right; margin-top:20px; margin-bottom: 20px;" class="md-raised" md-menu-trigger>Filter</md-button>
+                    <md-menu-content>
+                      <div class="author-card">
+                        <md-menu-item @click="setFilterCategory('')">
+                          <md-icon></md-icon>
+                          <span>All</span>
+                        </md-menu-item>
+                        <md-menu-item @click="setFilterCategory('movie')">
+                          <md-icon>videocam</md-icon>
+                          <span>Must Watch Movie</span>
+                        </md-menu-item>
+
+                        <md-menu-item @click="setFilterCategory('event')">
+                          <md-icon>directions_run</md-icon>
+                          <span>Must Attend Event</span>
+                        </md-menu-item>
+
+                        <md-menu-item @click="setFilterCategory('personal')">
+                          <md-icon>face</md-icon>
+                          <span>Personal List</span>
+                        </md-menu-item>
+                      </div>
+                    </md-menu-content>
+                  </md-menu>
+                </md-layout>
+                <md-layout md-flex="20">
+                  <md-input-container>
+                    <label>Search</label>
+                    <md-input type="text" v-model="search"></md-input>
+                    <md-icon>search</md-icon>
+                  </md-input-container>
+                </md-layout>
+              </md-layout>
+            </md-layout>
+          </div>
         </md-card-header>
         <md-card-content>
           <md-card v-for="todo in todos">
@@ -58,8 +109,12 @@
           <md-input type="date" v-model="due_date" required></md-input>
         </md-input-container>
         <md-input-container>
-          <label>Category</label>
-          <md-input type="text" v-model="category" required></md-input>
+          <label for="category">Category</label>
+          <md-select name="category" id="category" v-model="category">
+            <md-option value="Personal List">Personal List</md-option>
+            <md-option value="Must Attend Event">Must Attend Event</md-option>
+            <md-option value="Must Watch Movie">Must Watch Movie</md-option>
+          </md-select>
         </md-input-container>
         <md-checkbox id="my-test1" name="my-test1" v-model="star">Starred</md-checkbox>
       </md-dialog-content>
@@ -81,10 +136,18 @@ export default {
       _id: '',
       due_date: '',
       category: '',
-      star: false
+      star: false,
+      search: '',
+      filterFinish: true,
+      filterStar: true,
+      filterCategory: '',
+      showAll: true
     }
   },
   methods: {
+    setFilterCategory (category) {
+      this.filterCategory = category
+    },
     deleteTodo (id) {
       this.$http.delete('/todos/' + id).then(({data}) => {
         console.log(data)
@@ -101,10 +164,14 @@ export default {
     },
     starred (id) {
       this.$http.post('/todos/star/' + id).then(({data}) => {
+        var message = 'Todo Starred'
+        if(data.message.indexOf('Unstar') > -1) {
+          message = 'Todo Unstar'
+        }
         this.$store.commit('updateTodo', data.data)
         this.$swal({
           title: 'Yeah!',
-          text: 'Todo Starred',
+          text: message,
           type: 'success',
           confirmButtonText: 'Cool'
         })
@@ -120,10 +187,15 @@ export default {
     },
     finished (id) {
       this.$http.post('/todos/finished/' + id).then(({data}) => {
+        var message = 'Todo Mark as Finished'
+        if(data.message.indexOf('Unfinish') > -1) {
+          message = 'Todo Mark as Unfinish'
+        }
+        console.log(data.message)
         this.$store.commit('updateTodo', data.data)
         this.$swal({
           title: 'Yeah!',
-          text: 'Todo Mark as Finished',
+          text: message,
           type: 'success',
           confirmButtonText: 'Cool'
         })
@@ -173,8 +245,13 @@ export default {
         starred: this.star,
         category: this.category
       }).then(({data}) => {
-        console.log(data)
-        this.$store.commit('updateTodo', data.data)
+        // this.$store.commit('updateTodo', data.data)
+        this.$store.commit('updateTodoSave', data.data)
+        this.todo = ''
+        this.due_date = ''
+        this.starred = ''
+        this.category = ''
+        this.$refs['dialogEdit'].close()
         this.$swal({
           title: 'Yeah!',
           text: 'Todo Updated',
@@ -212,7 +289,83 @@ export default {
       return this.$store.state.user
     },
     todos () {
-      return this.$store.state.todos
+      if (this.showAll) {
+        this.filterFinish = false
+        this.filterStar = false
+        return this.$store.state.todos
+      }
+      var todos = []
+      if (this.search) {
+        var returnedData = []
+        this.$store.state.todos.forEach(todo => {
+          if (todo.todo.toLowerCase().indexOf(this.search.toLowerCase()) > -1) {
+            returnedData.push(todo)
+          }
+        })
+        todos = returnedData
+      } else {
+        todos = this.$store.state.todos
+      }
+      var todosFilterByStar = []
+      if (this.filterStar) {
+        todos.forEach(todo => {
+          if (todo.star) {
+            todosFilterByStar.push(todo)
+          }
+        })
+      } else {
+        todos.forEach(todo => {
+          if (!todo.star) {
+            todosFilterByStar.push(todo)
+          }
+        })
+      }
+      var todosFilterByFinish = []
+      if (this.filterFinish) {
+        todosFilterByStar.forEach(todo => {
+          if (todo.finished_at) {
+            todosFilterByFinish.push(todo)
+          }
+        })
+      } else {
+        todosFilterByStar.forEach(todo => {
+          if (!todo.finished_at) {
+            todosFilterByFinish.push(todo)
+          }
+        })
+      }
+      var returnedData = []
+      switch (this.filterCategory) {
+        case 'personal': {
+          todosFilterByFinish.forEach(todo => {
+            if (todo.category.indexOf('Personal')) {
+              returnedData.push(todo)
+            }
+          })
+          break
+        }
+        case 'movie': {
+          todosFilterByFinish.forEach(todo => {
+            if (todo.category.indexOf('Movie')) {
+              returnedData.push(todo)
+            }
+          })
+          break
+        }
+        case 'event': {
+          todosFilterByFinish.forEach(todo => {
+            if (todo.category.indexOf('Event')) {
+              returnedData.push(todo)
+            }
+          })
+          break
+        }
+        default: {
+          returnedData = todosFilterByFinish
+          break
+        }
+      }
+      return returnedData
     }
   }
 }
