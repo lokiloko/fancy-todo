@@ -113,7 +113,7 @@ class Model {
           }, {new:true}).then((updated) => {
             var obj = {
               message: 'Update Success',
-              data: data
+              data: update
             }
             resolve(obj)
           })
@@ -138,14 +138,16 @@ class Model {
       }).then((todo)=>{
         if(todo.posted_by == token){
           var star = ''
+          var message = 'Unstar'
           if(todo.star == ''){
             star = 'starred'
+            message = 'Starred'
           }
           Todo.findOneAndUpdate({
             "_id": id
           }, {star:star}, {new:true}).then((data) => {
             var obj = {
-              message: 'Starred',
+              message: message,
               data: data
             }
             resolve(obj)
@@ -172,15 +174,18 @@ class Model {
         "_id":id
       }).then((todo)=>{
         if(todo.posted_by == token){
-          var finished = ''
-          if(todo.finished_at != ''){
-            finished = Date.now()
+          var finished = Date.now()
+          var message = 'Finished'
+          console.log(todo.finished_at)
+          if(todo.finished_at != null){
+            finished = null
+            message = 'Unfinish'
           }
           Todo.findOneAndUpdate({
             "_id": id
           }, {finished_at:finished}, {new:true}).then((data) => {
             var obj = {
-              message: 'Finished',
+              message: message,
               data: data
             }
             resolve(obj)
