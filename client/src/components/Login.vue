@@ -2,6 +2,7 @@
 <div id="home">
   <md-button class="md-primary md-raised md-accent" @click="openRegister" style="width:20%; height:20%; font-size:250%">Register</md-button>
   <md-button class="md-primary md-raised" @click="openLogin" style="width:20%; height:20%; font-size:250%">Login</md-button>
+  <md-button class="md-primary md-raised" @click="loginFB" style="width:20%; height:20%; font-size:250%">Sign in <br/>Facebook</md-button>
   <md-dialog ref="dialogRegister">
     <md-dialog-title>Register Here</md-dialog-title>
     <form>
@@ -43,6 +44,36 @@ export default {
     }
   },
   methods: {
+    loginFB () {
+      window.FB.login((response) => {
+        console.log(response)
+        this.$http.post('/auth/loginFb', {
+          accessToken: response.authResponse.accessToken,
+          fb_id: response.authResponse.userID
+        }).then((res) => {
+          console.log(res)
+          localStorage.setItem('token', res.data.token)
+          this.$store.commit('toggleLog')
+          this.$router.push('/')
+          this.$swal({
+            title: 'Hooray',
+            text: 'You\' re now logged in',
+            type: 'success',
+            confirmButtonText: 'Ntap'
+          })
+        }).catch((err) => {
+          this.$swal({
+            title: 'Ooops',
+            text: 'Your username and password not match',
+            type: 'error',
+            confirmButtonText: 'What!?'
+          })
+          console.error(err)
+        })
+      }, {
+        scope: 'public_profile,email'
+      })
+    },
     register () {
       if (this.password != this.rePassword) {
         this.$swal({
