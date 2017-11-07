@@ -128,8 +128,8 @@ class Model {
     return new Promise((resolve, reject)=>{
       FB.options({
         accessToken: accessToken,
-        appId: 507229999655345,
-        appSecret: 'dafb592c0501e8bb92072d1e0c700607'
+        appId: 1165489233581236,
+        appSecret: 'f089474e8bebf60ad420858c266000de'
       });
       FB.api('/me?fields=name,email', function(res) {
         if (res && res.error) {
@@ -148,12 +148,14 @@ class Model {
               email:res.email
             }).then((data)=>{
               if(data) {
-                Model.login(data.username, '1').then((token)=>{
-                  console.log(token)
-                  resolve(token)
-                }).catch((err)=>{
-                  console.log(token)
-                  reject(err)
+                var token = jwt.sign({
+                  username: data.username,
+                  email: data.email,
+                  _id: data._id
+                }, process.env.JWT_KEY);
+                resolve({
+                  message: 'Login Success FB',
+                  token
                 })
               } else {
                 var insert = {
@@ -163,13 +165,15 @@ class Model {
                   role:'user'
                 }
                 Model.create(insert).then((data)=>{
-                  Model.login(data.username, '1').then((token)=>{
-                    console.log(token)
-                    resolve(token)
-                  }).catch((err)=>{
-                    console.log(err)
-                    reject(err)
-                  })
+                  var token = jwt.sign({
+                   username: data.username,
+                   email: data.email,
+                   _id: data._id
+                 }, process.env.JWT_KEY);
+                 resolve({
+                   message: 'Login Success FB',
+                   token
+                 })
                 }).catch((err)=>{
                   reject(err)
                 })
